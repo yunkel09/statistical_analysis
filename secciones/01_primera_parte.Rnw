@@ -162,8 +162,8 @@ churn |> ggbarstats(x = gender, y = exited, bf.message = FALSE)
 Vemos el p-valor en cada barra y vemos que es menor al nivel de significancia) lo
 que significa que cada categoría indica que existen diferencias significativas entre el
 sexo y la probabilidad de churn. La prueba de independencia se indica en la
-parte superior del gráfico y en este caso como el p-valor es superior a un 0.05 para un
-nivel de confianza del 95\%, \textbf{no podemos rechazamos la hipótesis nula de igualdad de
+parte superior del gráfico y en este caso como el p-valor es inferior a un 0.05 para un
+nivel de confianza del 95\%, \textbf{rechazamos la hipótesis nula de igualdad de
 proporciones.} También vemos que el tamaño del efecto es de 0.11
 \end{shaded}
 
@@ -213,6 +213,7 @@ fuel |>
  tabla(cap = "Resultado ANOVA Tipo II")
 @
 
+\begin{figure}[H]
 <<fig.asp=1>>=
 ggbetweenstats(
  x = fueltype,
@@ -224,6 +225,10 @@ ggbetweenstats(
  ggsignif.args = list(textsize = 2.5,tip_length = 0.01)
 ) + theme(plot.subtitle = element_text(size = 10))
 @
+\caption{Interpretación de resultados}
+   \label{fig:inter2}
+\end{figure}
+
 
 \begin{shaded}
 Obtenemos un p-valor significativo, es decir, el p-valor es menor a 0.05 por lo cual
@@ -240,7 +245,7 @@ puede medir en porcentaje como un 2.5\% de tamaño de efecto, el cual es pequño
    que corren paralelas?  Cada una corresponde a un tipo de combustible.  Genere un subset
    de datos que contenga solamente los vehículos que usan combustible regular (X)
    
-<<cache=TRUE, fig.asp=0.9>>=
+<<fig.asp=0.9>>=
 fuel |> 
  ggplot(aes(x = fuelconsumption_comb_mpg, y = co2emissions)) +
  geom_point(size = 2.5, pch = 21, col = "white", fill = "#D55E00") +
@@ -271,7 +276,7 @@ fuel |>
    
    \im{Aplicar subset solo a combustible regular}   
    
-<<cache=TRUE, fig.asp=0.9>>=
+<<fig.asp=0.9>>=
 fuel |> 
  filter(fueltype == "X") |> 
  ggplot(aes(x = fuelconsumption_comb_mpg, y = co2emissions)) +
@@ -298,7 +303,7 @@ fuel |>
    
 \im{Aplicar transformación logarítmica a la variable}
    
-<<cache=TRUE, fig.asp=0.9>>=
+<<fig.asp=0.9>>=
 fuel |> 
  filter(fueltype == "X") |>
  mutate(co2emissions = log(co2emissions),
