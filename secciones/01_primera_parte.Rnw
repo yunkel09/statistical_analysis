@@ -107,29 +107,47 @@ fuel  <- archivos$fuel
 res <- resumir(churn$estimated_salary)
 @
 
+<<>>=
+res |> tabla("Resumen Estadístico")
+@
+
 
 <<>>=
 brk <- hist(churn$estimated_salary, plot = F)$breaks
-
 churn |>
  ggplot(aes(x = estimated_salary, y = ..density..)) +
  geom_histogram(fill = "#56B4E9", size = .2, breaks = brk, color = "white") +
  geom_density(size = 1) +
  geom_vline(xintercept = 0, color = "black", linetype = "dashed") +
  geom_vline(xintercept = res[["media"]], color = "black", linetype = "dashed") +
+ geom_vline(xintercept = res[["mediana"]], color = "red", linetype = "dashed") +
  scale_x_continuous(name = "Salario", 
                     labels = dollar, expand = c(0, 0))  +
  labs(title = "Distribución del salario estimado") + furia
 @
 
 \begin{shaded}
-La distribución de la variable \va{esalary} no sigue una distribución normal.
+La distribución de la variable \va{esalary} no sigue una distribución normal. Su forma es
+más parecida a una distribución uniforme.  Se observa que la media es de
+\Sexpr{round(res[["media"]], 2)} y su mediana es de \Sexpr{round(res[["mediana"]], 2)}, las
+cuales son bastante parecidas.
 \end{shaded}
-
-
 
 \subsection{La variable Churn indica si un cliente ha desertado por lo que es de sumo interés.  Explore la relación de esta variable con la variable EstimatedSalary, tanto en forma gráfica como analítica. ¿Existe relación entre ambas?}
 
+
+<<>>=
+churn %>% 
+ mutate(exited = as.factor(exited)) %>%
+	ggplot(aes(x = estimated_salary, y = exited, fill = exited)) +
+	geom_boxplot(outlier.color = "red") +
+	labs(x = NULL, y = "Precio por región") +
+	theme(legend.position = "none")
+@
+
+\begin{shaded}
+No se observa una relación entre el churn y el salario estimado del cliente.
+\end{shaded}
 
 \subsection{¿Existe relación entre el sexo del cliente y la probabilidad que deserte?  Justifique su respuesta con el análisis respectivo}
 
