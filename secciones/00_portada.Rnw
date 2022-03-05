@@ -17,7 +17,7 @@
 \textbf{Resumen}
 
 \justify	
-Análisis confirmatorio
+Ejercicios con Churn Modelling y Fuel Consumption
 
 \vspace{0.5cm}
 

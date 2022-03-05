@@ -66,6 +66,8 @@ tabla <- function(df, cap = "prueba") {
 theme_set(yunkel)
 @
 
+\im{Función para calcular estadísticos básicos}
+
 <<>>=
 resumir <- function(.df) {
  my_skim <- skim_with(
@@ -330,11 +332,13 @@ fuel |>
 modelo <- lm(log(co2emissions) ~ log(fuelconsumption_comb_mpg), data = fuel)
 @
    
+\textbf{\hl{Como es una regresión con una transformación logarítmica, el coeficiente se
+debe multiplicar por 100 para interpretarse como porcentaje.}}   
    
 \im{Escribir el modelo}
 
 \begin{equation}
-   \bm{\widehat{co2} = 243.01 + 11.6(fuelty_{Z}) + 27.1(fuelty_{E}) + 72.96(fuelty_{N}) - 45.16(fuelty_{D})}
+   \bm{\widehat{log(co2emissions)} = 8.32 - 0.86(\log(fuelconsumption\_comb\_mpg)}
    \label{ecuacion}
 \end{equation}
 
@@ -349,7 +353,7 @@ stargazer(modelo, title = "Resultados de la Regresión",
  single.row = TRUE)
 @
    
- \begin{itemize}[itemsep=3ex]
+ \begin{itemize}[itemsep=5ex]
   
     \item \textbf{F global:} Encontramos evidencia significativa en contra de la hipótesis nula
     $H_{0}$. Concluimos que al menos uno de los coeficientes de pendiente es distinto de cero
@@ -378,16 +382,91 @@ stargazer(modelo, title = "Resultados de la Regresión",
 \subsection{Utilizando agrupación de datos, (group\_by de tidyverse, por ejemplo, o aggregate) y agrupando por marca (variable MAKE) calcule el consumo medio y la emisión media para cada marca.  ¿Cuál es la marca más eficiente y la menos eficiente?  ¿Cuál es la que menos emisiones genera y la que más genera?}
 
 <<>>=
+fun <- list(maximo = ~ max(.x),
+            minimo = ~ min(.x))
+@
 
+<<>>=
+fl <- fuel |> 
+ select(make, consumo = fuelconsumption_comb_mpg, co2 = co2emissions) |> 
+ group_by(make) |> 
+ summarise(across(where(is.numeric), mean))
 @
 
 
+<<>>=
+fl |> 
+ summarise(across(consumo:co2, fun, .names = "{.fn}.{.col}")) |> 
+ rename_with(~ make_clean_names(.x)) |> 
+ pivot_longer(cols = everything(), names_to = "estadistico", "valor") |> 
+ left_join(fl |> select(make, consumo), by = c("value" = "consumo")) |> 
+ left_join(fl |> select(make, co2), by = c("value" = "co2")) |> 
+ mutate(marca = coalesce(make.x, make.y), .keep = "unused", .before = 1) |> 
+ tabla("Estadístico de consumo")
+@
+
+\begin{shaded}
+Vemos en la tabla que \textbf{marcas} tienen los mayores y menores promedios en cuanto a
+consumo y emisiones de co2.  El vehículo más eficiente es el SMART con 55 mpg y el menos
+eficiente es el BUGATTI con solo 13 mpg.  A su vez estos mismos vehículos son los que
+producen más y menos emisiones.
+\end{shaded}
+
 \subsection{Explore visualmente la distribución de la variable CO2EMISSIONS y comente sobre su forma.  ¿Parece normal?}
 
+<<>>=
+brk <- hist(fuel$co2emissions, plot = F)$breaks
+fuel |>
+ ggplot(aes(x = co2emissions, y = ..density..)) +
+ geom_histogram(fill = "#56B4E9", size = .2, breaks = brk, color = "white") +
+ geom_density(size = 1) +
+ geom_vline(xintercept = 0, color = "black", linetype = "dashed") +
+ scale_x_continuous(name = "Emisiones", 
+                    labels = dollar, expand = c(0, 0))  +
+ labs(title = "Distribución de Emisiones") + furia
+@
+
+\begin{shaded}
+Si. Parece normal.
+\end{shaded}
 
 \subsection{Para validar la normalidad, extraiga una muestra aleatoria de tamaño 100 de las emisiones y aplíquele la prueba de Shapiro.  Para asegurarnos que todos obtenemos la misma muestra, ejecute la siguiente línea INMEDIATAMENTE ANTES de la línea de la muestra:  set.seed(222)  Esto setea el generador de números aleatorios para que sea reproducible y se genere siempre la misma secuencia.  Para probar que se generaron los mismos datos, vea los primeros 5 datos de la muestra y éstos deben ser: 205,255,258,230 y 126.  Basado en el resultado de la prueba, ¿cuál es su conclusión sobre la normalidad de la variable de donde se extrajo la muestra?}
 
+<<>>=
+set.seed(222)
+muestra <- sample(fuel$co2emissions, size = 100, replace = FALSE)
+shapiro.test(muestra)
+@
+
+\begin{shaded}
+No podemos rechazar la hipótesis nula de normalidad de la distribución debido a que el
+p-valor no es menor al nivel de significancia.
+\end{shaded}
 
 \subsection{En base al resultado del inciso anterior, calcule la media y la desviación de la variable (no de la muestra) y utilizando la distribución normal, encuentre la probabilidad que un carro genere emisiones mayores a 300 g/KM}
+
+<<>>=
+co2 <- resumir(fuel$co2emissions)
+@
+
+<<>>=
+co2 |> tabla("Resumen estadístico")
+@
+
+<<>>=
+pnorm(q = 300, mean = co2$media, sd = co2$desviacion, lower.tail = FALSE)
+@
+
+\begin{shaded}
+La probabilidad es del 19.3\%
+\end{shaded}
+
+
+
+
+
+
+
+
 
 

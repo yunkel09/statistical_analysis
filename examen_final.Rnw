@@ -496,6 +496,9 @@ ggplot(data = data, mapping = mapping) +
 
 
 % aquí va la portada
+<<child='secciones/00_portada.Rnw'>>=
+
+@
 
 
 % \renewcommand{\contentsname}{Índice}
@@ -510,11 +513,6 @@ ggplot(data = data, mapping = mapping) +
 <<child='secciones/01_primera_parte.Rnw'>>=
 
 @
-
-<<child='secciones/02_segunda_parte.Rnw'>>=
-
-@
-
 
 <<child='secciones/03_bibliografia.Rnw'>>=
 
