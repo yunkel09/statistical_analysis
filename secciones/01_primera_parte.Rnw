@@ -1,0 +1,180 @@
+\chapter{Primera parte}
+
+Para el análisis exploratorio y confirmatorio se utilizará en gran parte los paquetes
+$\left \{rstatix \right \}$ \citep{R-rstatix} y $\left \{ggstatsplot \right \}$
+\citep{R-ggstatsplot}, ambos tienen la ventaja sobre las funciones del paquete base en que
+simplifican el análisis y en particular este último con la ventaja de unificar en una sola
+gráfica las pruebas confirmatorias más comunes \citep{ggstatsplot2021}.
+
+En la carga hay dos paquetes de mi autoría que no está en el CRAN, uno es
+$\left \{conectigo \right \}$ \citep{R-conectigo} y el otro es $\left \{statistigo \right \}$
+\citep{R-statistigo} por lo que el análisis no será 100\% reproducible. De igual forma,
+para compactar el análisis, muchas opciones y paquetes se cargaran de forma oculta,
+dejando únicamente aquellos que son relevantes para el análisis en si.
+
+
+\section{Paquetes}
+
+<<>>=
+import::from(GGally, ggpairs, wrap)
+import::from(conectigo, cargar_fuentes)
+import::from(fs, dir_ls)
+import::from(weights, rd, starmaker)
+import::from(DescTools, JarqueBeraTest)
+import::from(nortest, ad.test, pearson.test, sf.test, lillie.test)
+import::from(ggstatsplot, ggbetweenstats, gghistostats, ggbarstats, ggwithinstats)
+import::from(corrplot, corrplot)
+pacman::p_load(skimr, triangle, scales, rstatix, ggstatsplot, janitor, tidyverse)
+@
+
+<<include=FALSE>>=
+cargar_fuentes()
+
+# definir el tema por defecto a utilizar en gráficos ggplot
+yunkel <- theme_cowplot(font_family = "yano") +
+ theme(plot.margin   = unit(c(6, 1, 1, 1), "mm"),
+       axis.title    = element_text(size = 10),
+       axis.text     = element_text(size = 10),
+       plot.title    = element_text(size = 18),
+       plot.subtitle = element_text(size = 12))
+
+# tema con grid horizontal y vertical
+drako <- theme_bw(base_family = "yano", base_size = 14) +
+ theme(plot.margin    = unit(c(6, 1, 1, 1), "mm"),
+       axis.title     = element_text(size = 12),
+       axis.text      = element_text(size = 12),
+       plot.title     = element_text(size = 18),
+       plot.subtitle  = element_text(size = 12))
+
+furia <- yunkel + 
+ theme(axis.line = element_blank(), 
+       panel.grid.major.y = element_line(color = "#e5e5e5"))
+
+porcentaje <- label_percent(decimal.mark = ".", suffix = "%", accuracy = 0.001)
+
+# función para crear tablas genéricas
+tabla <- function(df, cap = "prueba") {
+ 
+ df %>% 
+  kbl(booktabs = TRUE, linesep = "", caption = cap) %>% 
+  kable_paper(full_width = F) %>% 
+  kable_styling(latex_options = "HOLD_position", table.envir = "float")
+ 
+}
+
+theme_set(yunkel)
+@
+
+<<>>=
+resumir <- function(.df) {
+ my_skim <- skim_with(
+  base = NULL,
+  numeric = sfl(media      = ~ mean(., na.rm = TRUE),
+                mediana    = ~ median(., na.rm = TRUE),
+                desviacion = ~ sd(., na.rm = TRUE)), append = F)
+ my_skim(.df) |> 
+  rename_with(~ str_replace_all(.x, "numeric\\.", "")) |> 
+  select(-c(1:2))
+}
+@
+
+
+
+\section{Carga de archivos}
+
+<<>>=
+nombres <- dir_ls(path = ".", glob = "*.csv") |> 
+ str_remove(pattern = "\\..+")
+@
+
+<<>>=
+archivos <- dir_ls(path = ".", glob = "*.csv") |> 
+ map(read_csv, lazy = FALSE, name_repair = janitor::make_clean_names) |> 
+ iwalk(~ assign(.y, .x, envir = .GlobalEnv)) |> 
+ set_names(nombres)
+@
+
+<<>>=
+churn <- archivos$churn  
+fuel  <- archivos$fuel 
+@
+
+\section{Análisis}
+
+\subsection{Para el primer set de datos (Churn) Realice un análisis exploratorio de la variable EstimatedSalary y escriba sus principales hallazgos y conclusiones respaldándolas con la evidencia respectiva}
+
+<<>>=
+res <- resumir(churn$estimated_salary)
+@
+
+
+<<>>=
+brk <- hist(churn$estimated_salary, plot = F)$breaks
+
+churn |>
+ ggplot(aes(x = estimated_salary, y = ..density..)) +
+ geom_histogram(fill = "#56B4E9", size = .2, breaks = brk, color = "white") +
+ geom_density(size = 1) +
+ geom_vline(xintercept = 0, color = "black", linetype = "dashed") +
+ geom_vline(xintercept = res[["media"]], color = "black", linetype = "dashed") +
+ scale_x_continuous(name = "Salario", 
+                    labels = dollar, expand = c(0, 0))  +
+ labs(title = "Distribución del salario estimado") + furia
+@
+
+\begin{shaded}
+La distribución de la variable \va{esalary} no sigue una distribución normal.
+\end{shaded}
+
+
+
+\subsection{La variable Churn indica si un cliente ha desertado por lo que es de sumo interés.  Explore la relación de esta variable con la variable EstimatedSalary, tanto en forma gráfica como analítica. ¿Existe relación entre ambas?}
+
+
+\subsection{¿Existe relación entre el sexo del cliente y la probabilidad que deserte?  Justifique su respuesta con el análisis respectivo}
+
+
+\subsection{Realice una pregunta de investigación sobre estos datos y respóndala utilizando las herramientas que considere necesarias}
+
+
+\subsection{Para el segundo set de datos (FuelConsumption), realice un boxplot de las emisiones de CO2 respecto al tipo de combustible y discuta}
+
+\subsection{Explore la relación entre la variable Consumo combinado en MPG (FUELCONSUMPTION\_COMB\_MPG) y las emisiones de CO2 de la siguiente forma}
+
+ \begin{enumerate}[letras]
+   
+   \item Construya un diagrama de dispersión entre ambas variables.  ¿Observa varias curvas
+   que corren paralelas?  Cada una corresponde a un tipo de combustible.  Genere un subset
+   de datos que contenga solamente los vehículos que usan combustible regular (X)
+   
+   \item Vuelva a plotear el gráfico de dispersión de las mismas 2 variables pero solo para
+   este subset y observe el comportamiento no lineal.  Esto sugiere que se debe hacer una
+   transformación de los datos para linealizarlos.  Aplique una transformación logarítmica a
+   AMBAS variables y vuelva a plotear.  Debe obtener una gráfica casi perfectamente lineal.
+   
+   \item Construya un modelo lineal entre ambas variables y explíquelo en términos de
+   significancia y coef. de determinación. Escriba la ecuación del modelo
+   
+ \end{enumerate}
+
+\subsection{Utilizando agrupación de datos, (group\_by de tidyverse, por ejemplo, o aggregate) y agrupando por marca (variable MAKE) calcule el consumo medio y la emisión media para cada marca.  ¿Cuál es la marca más eficiente y la menos eficiente?  ¿Cuál es la que menos emisiones genera y la que más genera?}
+
+
+
+\subsection{Explore visualmente la distribución de la variable CO2EMISSIONS y comente sobre su forma.  ¿Parece normal?}
+
+
+\subsection{Para validar la normalidad, extraiga una muestra aleatoria de tamaño 100 de las emisiones y aplíquele la prueba de Shapiro.  Para asegurarnos que todos obtenemos la misma muestra, ejecute la siguiente línea INMEDIATAMENTE ANTES de la línea de la muestra:  set.seed(222)  Esto setea el generador de números aleatorios para que sea reproducible y se genere siempre la misma secuencia.  Para probar que se generaron los mismos datos, vea los primeros 5 datos de la muestra y éstos deben ser: 205,255,258,230 y 126.  Basado en el resultado de la prueba, ¿cuál es su conclusión sobre la normalidad de la variable de donde se extrajo la muestra?}
+
+
+\subsection{En base al resultado del inciso anterior, calcule la media y la desviación de la variable (no de la muestra) y utilizando la distribución normal, encuentre la probabilidad que un carro genere emisiones mayores a 300 g/KM}
+
+
+
+
+
+
+
+
+
+

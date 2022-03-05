@@ -1,0 +1,30 @@
+\begin{titlepage}
+
+	\centering
+	\includegraphics[width=0.3\textwidth]{uvg1}\par\vspace{1.5cm}
+	% \includegraphics[width=0.6\textwidth]{logo_tigo}\par\vspace{1.5cm}
+	{\scshape\huge \maestria \par}
+	\vspace{2cm}
+	{\huge\bfseries \titulo\par}
+	\vspace{1.5cm}
+	
+	{\large \autor\par}
+	\vspace{0.2cm}
+	
+	{\normalsize \fecha\par}
+	\vspace{0.2cm}
+	
+\textbf{Resumen}
+
+\justify	
+Análisis confirmatorio
+
+\vspace{0.5cm}
+
+\textbf{Palabras clave:} Análisis Exploratorio, Análisis Confirmatorio, Modelado
+	
+	\vspace{0.5cm}
+	\centering
+ \includegraphics[width=0.3\textwidth]{logo_tigo}
+
+\end{titlepage}

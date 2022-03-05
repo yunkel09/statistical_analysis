@@ -1,0 +1,6 @@
+% \phantomsection
+\addcontentsline{toc}{chapter}{Bibliografia}
+\bibliography{examen_final, paquetes}
+\bibliographystyle{apalike}
+
+\clearpage
