@@ -78,25 +78,16 @@ resumir <- function(.df) {
 }
 @
 
-
-
 \section{Carga de archivos}
 
 <<>>=
-nombres <- dir_ls(path = ".", glob = "*.csv") |> 
- str_remove(pattern = "\\..+")
+churn <- read_csv("churn.csv", lazy = FALSE, col_types = "iciffiidiffdf", 
+ name_repair = janitor::make_clean_names)
 @
 
 <<>>=
-archivos <- dir_ls(path = ".", glob = "*.csv") |> 
- map(read_csv, lazy = FALSE, name_repair = janitor::make_clean_names) |> 
- iwalk(~ assign(.y, .x, envir = .GlobalEnv)) |> 
- set_names(nombres)
-@
-
-<<>>=
-churn <- archivos$churn  
-fuel  <- archivos$fuel 
+fuel <- read_csv("fuel.csv", lazy = FALSE, col_types = "ifffdiffddddi", 
+ name_repair = janitor::make_clean_names)
 @
 
 \section{Análisis}
@@ -150,6 +141,30 @@ No se observa una relación entre el churn y el salario estimado del cliente.
 \end{shaded}
 
 \subsection{¿Existe relación entre el sexo del cliente y la probabilidad que deserte?  Justifique su respuesta con el análisis respectivo}
+
+<<>>=
+churn |> 
+ tabyl(gender, exited) |> 
+ adorn_totals(where = c("row","col"), name = "total") |> 
+ adorn_percentages(denominator = "col") |> 
+ adorn_pct_formatting(rounding = "half up", digits = 2) |> 
+ adorn_ns() %>%
+ adorn_title("combined") |> 
+ tabla("Relación entre el Sexo y el Churn")
+@
+
+<<>>=
+churn |> ggbarstats(x = gender, y = exited, bf.message = FALSE)
+@
+
+\begin{shaded}
+Vemos el p-valor en cada barra y vemos que es menor al nivel de significancia) lo
+que significa que cada categoría indica que existen diferencias significativas entre el
+sexo y la probabilidad de churn. La prueba de independencia se indica en la
+parte superior del gráfico y en este caso como el p-valor es superior a un 0.05 para un
+nivel de confianza del 95\%, \textbf{no podemos rechazamos la hipótesis nula de igualdad de
+proporciones.} También vemos que el tamaño del efecto es de 0.11
+\end{shaded}
 
 
 \subsection{Realice una pregunta de investigación sobre estos datos y respóndala utilizando las herramientas que considere necesarias}
