@@ -366,7 +366,7 @@ knit_theme$set(thm)
 # establecer opciones generales
 options(pillar.sigfig    = 5,
         tibble.print_min = 10,
-        scipen = 999,
+        # scipen = 999,
         digits = 7,
         readr.show_col_types = FALSE,
         dplyr.summarise.inform = FALSE)
@@ -510,6 +510,11 @@ ggplot(data = data, mapping = mapping) +
 <<child='secciones/01_primera_parte.Rnw'>>=
 
 @
+
+<<child='secciones/02_segunda_parte.Rnw'>>=
+
+@
+
 
 <<child='secciones/03_bibliografia.Rnw'>>=
 

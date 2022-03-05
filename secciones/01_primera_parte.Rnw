@@ -1,4 +1,4 @@
-\chapter{Primera parte}
+\chapter{Examen Final - Statistical Analysis}
 
 Para el análisis exploratorio y confirmatorio se utilizará en gran parte los paquetes
 $\left \{rstatix \right \}$ \citep{R-rstatix} y $\left \{ggstatsplot \right \}$
@@ -90,7 +90,7 @@ fuel <- read_csv("fuel.csv", lazy = FALSE, col_types = "ifffdiffddddi",
  name_repair = janitor::make_clean_names)
 @
 
-\section{Análisis}
+\section{Churn Modeling}
 
 \subsection{Para el primer set de datos (Churn) Realice un análisis exploratorio de la variable EstimatedSalary y escriba sus principales hallazgos y conclusiones respaldándolas con la evidencia respectiva}
 
@@ -194,11 +194,40 @@ ggbetweenstats(
 @
 
 \begin{shaded}
-Vemos el resultado de la prueba estadística de Fisher, el p-valor que dice que\textbf{no hay
-diferencias significativas}, el tamaño del efecto es practicamente cero. 
+Vemos el resultado de la prueba estadística de Fisher, el p-valor que dice que \textbf{no hay
+diferencias significativas}, el tamaño del efecto es prácticamente cero. 
 \end{shaded}
 
+\section{Fuel Consumption}
+
 \subsection{Para el segundo set de datos (FuelConsumption), realice un boxplot de las emisiones de CO2 respecto al tipo de combustible y discuta}
+
+\subsubsection{ANOVA entre-sujetos}
+
+<<>>=
+fuel |> 
+ anova_test(co2emissions ~ fueltype) |> 
+ tabla(cap = "Resultado ANOVA Tipo II")
+@
+
+<<fig.asp=1>>=
+ggbetweenstats(
+ x = fueltype,
+ y = co2emissions,
+ data = fuel,
+ p.adjust.method = "bonferroni",
+ bf.message = FALSE,
+ var.equal = TRUE,
+ ggsignif.args = list(textsize = 2.5,tip_length = 0.01)
+) + theme(plot.subtitle = element_text(size = 10))
+@
+
+\begin{shaded}
+Obtenemos un p-valor significativo, es decir, el p-valor es menor a 0.05 por lo cual
+existen diferencias significativas. Alguno de estos tipos de combustible se diferencia en
+promedio del resto en cuanto a las emisiones de C02. El tamaño del efecto es de 0.02 que se
+puede medir en porcentaje como un 2.5\% de tamaño de efecto, el cual es pequño.
+\end{shaded}
 
 \subsection{Explore la relación entre la variable Consumo combinado en MPG (FUELCONSUMPTION\_COMB\_MPG) y las emisiones de CO2 de la siguiente forma}
 
@@ -208,10 +237,63 @@ diferencias significativas}, el tamaño del efecto es practicamente cero.
    que corren paralelas?  Cada una corresponde a un tipo de combustible.  Genere un subset
    de datos que contenga solamente los vehículos que usan combustible regular (X)
    
+<<cache=TRUE, fig.asp=0.9>>=
+fuel |> 
+ ggplot(aes(x = fuelconsumption_comb_mpg, y = co2emissions)) +
+ geom_point(size = 2.5, pch = 21, col = "white", fill = "#D55E00") +
+ stat_smooth(formula  = y ~ x,
+             method   = "lm",
+             se       = TRUE,
+             color    = "blue",
+             fill     = "blue",
+             size     = 0.5,
+             alpha    = 0.2,
+             linetype = "longdash") +
+ stat_smooth(formula = y ~ x, 
+             method = "loess", 
+             se = TRUE, 
+             color = "red",
+             alpha = 0.2,
+             fill = "blue",
+             size = 0.5) + 
+   labs(title = "Relación entre el tipo de combustible y la cantidad de emisiones de CO2",
+        subtitle = "Observar que hay varias curvas paralelas que pertenecen a los diferentes tipos de combustible") +
+   yunkel + theme(axis.text = element_text(size = 13))
+@
+   
    \item Vuelva a plotear el gráfico de dispersión de las mismas 2 variables pero solo para
    este subset y observe el comportamiento no lineal.  Esto sugiere que se debe hacer una
    transformación de los datos para linealizarlos.  Aplique una transformación logarítmica a
    AMBAS variables y vuelva a plotear.  Debe obtener una gráfica casi perfectamente lineal.
+   
+   \im{Aplicar subset solo a combustible regular}   
+   
+<<cache=TRUE, fig.asp=0.9>>=
+fuel |> 
+ filter(fueltype == "X") |> 
+ ggplot(aes(x = fuelconsumption_comb_mpg, y = co2emissions)) +
+ geom_point(size = 2.5, pch = 21, col = "white", fill = "#D55E00") +
+ stat_smooth(formula  = y ~ x,
+             method   = "lm",
+             se       = TRUE,
+             color    = "blue",
+             fill     = "blue",
+             size     = 0.5,
+             alpha    = 0.2,
+             linetype = "longdash") +
+ stat_smooth(formula = y ~ x, 
+             method = "loess", 
+             se = TRUE, 
+             color = "red",
+             alpha = 0.2,
+             fill = "blue",
+             size = 0.5) + 
+   labs(title = "Relación entre la edad y el ingreso",
+        subtitle = "Análisis de varianza") +
+   yunkel + theme(axis.text = element_text(size = 13))
+@
+   
+   
    
    \item Construya un modelo lineal entre ambas variables y explíquelo en términos de
    significancia y coef. de determinación. Escriba la ecuación del modelo
@@ -229,13 +311,5 @@ diferencias significativas}, el tamaño del efecto es practicamente cero.
 
 
 \subsection{En base al resultado del inciso anterior, calcule la media y la desviación de la variable (no de la muestra) y utilizando la distribución normal, encuentre la probabilidad que un carro genere emisiones mayores a 300 g/KM}
-
-
-
-
-
-
-
-
 
 
