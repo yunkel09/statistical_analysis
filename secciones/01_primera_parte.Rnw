@@ -126,18 +126,16 @@ cuales son bastante parecidas.
 
 \subsection{La variable Churn indica si un cliente ha desertado por lo que es de sumo interés.  Explore la relación de esta variable con la variable EstimatedSalary, tanto en forma gráfica como analítica. ¿Existe relación entre ambas?}
 
-
 <<>>=
-churn %>% 
- mutate(exited = as.factor(exited)) %>%
-	ggplot(aes(x = estimated_salary, y = exited, fill = exited)) +
-	geom_boxplot(outlier.color = "red") +
-	labs(x = NULL, y = "Precio por región") +
-	theme(legend.position = "none")
+churn |> ggbetweenstats(x = exited, y = estimated_salary, bf.message = FALSE) +
+theme(text = element_text(size = 12), plot.subtitle = element_text(size = 10))
 @
 
 \begin{shaded}
-No se observa una relación entre el churn y el salario estimado del cliente.
+No existe evidencia tanto a nivel visual, como a nivel confirmatorio sobre una diferencia
+estadísticamente significativa entre el salario estimado y la deserción del cliente. Vemos
+que el p-valor es mayor al nivel de significancia, por lo que no podemos rechazar la
+hipótesis nula de que la media de ambas muestras no son distintas.
 \end{shaded}
 
 \subsection{¿Existe relación entre el sexo del cliente y la probabilidad que deserte?  Justifique su respuesta con el análisis respectivo}
@@ -169,6 +167,36 @@ proporciones.} También vemos que el tamaño del efecto es de 0.11
 
 \subsection{Realice una pregunta de investigación sobre estos datos y respóndala utilizando las herramientas que considere necesarias}
 
+\subsubsection{ANOVA entre-sujetos}
+
+ \begin{itemize}[itemsep=1ex]
+  \item \textbf{Pregunta de investigación:} \im{¿La media $\mu$ del salario estimado no es el
+  mismo para todos las regiones geográficas?} (al menos un grupo es \textbf{distinto}) 
+  \item \textbf{Hipótesis:} 
+  \setlength{\parskip}{12pt}
+       \begin{itemize}[itemsep=1ex]
+         \item \textbf{H0:} $\mu_{1} = \mu_{2} =\; ... \;\; \mu_{k}$
+         ($k$ es el número de grupos)
+         \item \textbf{H1:} $\mu_{i} \neq \mu_{j}$ (\textbf{distinto} para algún $i$ y $j$)
+       \end{itemize}
+ \end{itemize}
+
+<<>>=
+ggbetweenstats(
+ x = geography,
+ y = estimated_salary,
+ data = churn,
+ p.adjust.method = "bonferroni",
+ bf.message = FALSE,
+ var.equal = TRUE,
+ ggsignif.args = list(textsize = 2.5,tip_length = 0.01)
+) + theme(plot.subtitle = element_text(size = 10))
+@
+
+\begin{shaded}
+Vemos el resultado de la prueba estadística de Fisher, el p-valor que dice que\textbf{no hay
+diferencias significativas}, el tamaño del efecto es practicamente cero. 
+\end{shaded}
 
 \subsection{Para el segundo set de datos (FuelConsumption), realice un boxplot de las emisiones de CO2 respecto al tipo de combustible y discuta}
 
