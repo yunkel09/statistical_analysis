@@ -24,7 +24,8 @@ import::from(DescTools, JarqueBeraTest)
 import::from(nortest, ad.test, pearson.test, sf.test, lillie.test)
 import::from(ggstatsplot, ggbetweenstats, gghistostats, ggbarstats, ggwithinstats)
 import::from(corrplot, corrplot)
-pacman::p_load(skimr, triangle, scales, rstatix, ggstatsplot, janitor, tidyverse)
+import::from(stargazer, stargazer)
+pacman::p_load(equatiomatic, skimr, triangle, scales, rstatix, ggstatsplot, janitor, tidyverse)
 @
 
 <<include=FALSE>>=
@@ -256,8 +257,8 @@ fuel |>
              alpha = 0.2,
              fill = "blue",
              size = 0.5) + 
-   labs(title = "Relación entre el tipo de combustible y la cantidad de emisiones de CO2",
-        subtitle = "Observar que hay varias curvas paralelas que pertenecen a los diferentes tipos de combustible") +
+   labs(title = "Tipo de combustible vs emisiones CO2",
+        subtitle = "Curvas paralelas debido a diferentes tipos de combustible") +
    yunkel + theme(axis.text = element_text(size = 13))
 @
    
@@ -288,20 +289,97 @@ fuel |>
              alpha = 0.2,
              fill = "blue",
              size = 0.5) + 
-   labs(title = "Relación entre la edad y el ingreso",
-        subtitle = "Análisis de varianza") +
+   labs(title = "Tipo de combustible vs emisiones CO2",
+        subtitle = "Se observa un comportamiento no lineal") +
    yunkel + theme(axis.text = element_text(size = 13))
 @
    
+\im{Aplicar transformación logarítmica a la variable}
    
-   
+<<cache=TRUE, fig.asp=0.9>>=
+fuel |> 
+ filter(fueltype == "X") |>
+ mutate(co2emissions = log(co2emissions),
+        fuelconsumption_comb_mpg = log(fuelconsumption_comb_mpg)) |> 
+ ggplot(aes(x = fuelconsumption_comb_mpg, y = co2emissions)) +
+ geom_point(size = 2.5, pch = 21, col = "white", fill = "#D55E00") +
+ stat_smooth(formula  = y ~ x,
+             method   = "lm",
+             se       = TRUE,
+             color    = "blue",
+             fill     = "blue",
+             size     = 0.5,
+             alpha    = 0.2,
+             linetype = "longdash") +
+ stat_smooth(formula = y ~ x, 
+             method = "loess", 
+             se = TRUE, 
+             color = "red",
+             alpha = 0.2,
+             fill = "blue",
+             size = 0.5) + 
+   labs(title = "Tipo de combustible vs emisiones CO2",
+        subtitle = "Al aplicar logaritmo a AMBAS variables") +
+   yunkel + theme(axis.text = element_text(size = 13))
+@
+
    \item Construya un modelo lineal entre ambas variables y explíquelo en términos de
    significancia y coef. de determinación. Escriba la ecuación del modelo
    
+<<>>=
+modelo <- lm(log(co2emissions) ~ log(fuelconsumption_comb_mpg), data = fuel)
+@
+   
+   
+\im{Escribir el modelo}
+
+\begin{equation}
+   \bm{\widehat{co2} = 243.01 + 11.6(fuelty_{Z}) + 27.1(fuelty_{E}) + 72.96(fuelty_{N}) - 45.16(fuelty_{D})}
+   \label{ecuacion}
+\end{equation}
+
+<<results='asis'>>=
+stargazer(modelo, title = "Resultados de la Regresión", 
+ digits = 4,
+ initial.zero = FALSE,
+ dep.var.labels.include = FALSE,
+ dep.var.caption = "",
+ intercept.bottom = FALSE,
+ style = "all2",
+ single.row = TRUE)
+@
+   
+ \begin{itemize}[itemsep=3ex]
+  
+    \item \textbf{F global:} Encontramos evidencia significativa en contra de la hipótesis nula
+    $H_{0}$. Concluimos que al menos uno de los coeficientes de pendiente es distinto de cero
+    $\beta_{j}\geq 0$
+
+   \item \textbf{RSE:} El error estándar residual es de 0.07, lo que significa que los
+   valores predichos por el modelo se alejan 0.07\% del verdadero valor.
+   
+   \item \textbf{Intercepto:} Este valor corresponde al nivel medio de CO2 que obtendríamos
+   si el resto de predictores fueran cero. Es estadísticamente significativo.
+   
+   \item \textbf{Coeficiente de determinación}: El predictor explica el 89.73\% de la
+   variación en las emisiones de CO2.
+   
+   \textbf{fuelcomsuption:} El coeficiente de regresión $B_{1}$ para el predictor
+   fuelcomsumption es de \textbf{-0.86} y representa el cambio \textbf{porcentual} en las
+   emisiones de CO2, es decir, por cada 1\% que aumente el consumo combinado las emisiones
+   de CO2 en g/KM disminuye en 86\%.  Esto es consistente con la gráfica anterior en la
+   que vemos una relación inversamente proporcional, en la que a medida que aumenta el
+   consumo combinado, las emisiones de CO2 disminuyen a una tasa lineal.
+
+ \end{itemize}
+
  \end{enumerate}
 
 \subsection{Utilizando agrupación de datos, (group\_by de tidyverse, por ejemplo, o aggregate) y agrupando por marca (variable MAKE) calcule el consumo medio y la emisión media para cada marca.  ¿Cuál es la marca más eficiente y la menos eficiente?  ¿Cuál es la que menos emisiones genera y la que más genera?}
 
+<<>>=
+
+@
 
 
 \subsection{Explore visualmente la distribución de la variable CO2EMISSIONS y comente sobre su forma.  ¿Parece normal?}
